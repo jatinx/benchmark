@@ -70,6 +70,11 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
            "overhead.\n";
   }
 
+#if defined(HIP_RUNTIME_PRESENT) || defined(CUDA_RUNTIME_PRESENT)
+  const GPUInfo &gpu_info = context.gpu_info;
+  Out << "GPU Name: " << gpu_info.name << "\n";
+#endif
+
 #ifndef NDEBUG
   Out << "***WARNING*** Library was built as DEBUG. Timings may be "
          "affected.\n";
@@ -80,7 +85,13 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 const char *BenchmarkReporter::Context::executable_name;
 
 BenchmarkReporter::Context::Context()
-    : cpu_info(CPUInfo::Get()), sys_info(SystemInfo::Get()) {}
+    : cpu_info(CPUInfo::Get()),
+      sys_info(SystemInfo::Get())
+#if defined(HIP_RUNTIME_PRESENT) || defined(CUDA_RUNTIME_PRESENT)
+      ,
+      gpu_info(GPUInfo::Get());
+#endif
+{}
 
 std::string BenchmarkReporter::Run::benchmark_name() const {
   std::string name = run_name.str();
