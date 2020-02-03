@@ -270,6 +270,15 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_GPU_CLEANUP() \
   cudaEventDestroy(start);      \
   cudaEventDestroy(stop);
+
+// Compact Definitions
+#define BENCHMARK_GPU_COMPACT_HEAD() \
+  BENCHMARK_GPU_DECLARE();           \
+  BENCHMARK_GPU_PRE_KERNEL();
+#define BENCHMARK_GPU_COMPACT_TAIL() \
+  BENCHMARK_GPU_POST_KERNEL();       \
+  BENCHMARK_GPU_SET_TIME();          \
+  BENCHMARK_GPU_CLEANUP();
 #endif
 
 namespace benchmark {
