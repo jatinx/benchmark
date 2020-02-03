@@ -1311,19 +1311,6 @@ struct SystemInfo {
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(SystemInfo);
 };
 
-// Adding GPU Information
-struct GPUInfo {
-  std::string name;
-  unsigned int processor_count;
-  unsigned int processor_frequency;
-  unsigned int memory_size;
-  static const GPUInfo& Get();
-
- private:
-  GPUInfo();
-  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(GPUInfo);
-};
-
 // BenchmarkName contains the components of the Benchmark's name
 // which allows individual fields to be modified or cleared before
 // building the final name using 'str()'.
@@ -1351,9 +1338,6 @@ class BenchmarkReporter {
   struct Context {
     CPUInfo const& cpu_info;
     SystemInfo const& sys_info;
-#if defined(HIP_RUNTIME_PRESENT) || defined(CUDA_RUNTIME_PRESENT)
-    GPUInfo const& gpu_info;
-#endif
     // The number of chars in the longest benchmark name.
     size_t name_field_width;
     static const char* executable_name;

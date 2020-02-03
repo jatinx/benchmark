@@ -54,9 +54,9 @@
 #include <iostream>
 #include <iterator>
 #include <limits>
-#include <locale>
 #include <memory>
 #include <sstream>
+#include <locale>
 
 #include "check.h"
 #include "cycleclock.h"
@@ -64,18 +64,6 @@
 #include "log.h"
 #include "sleep.h"
 #include "string_util.h"
-
-#if __has_include(<hip/hip_runtime.h>)
-#define HIP_RUNTIME_PRESENT 1
-#include <hip/hip_runtime.h>
-#elif __has_include(<cuda.h>)
-#define CUDA_RUNTIME_PRESENT 1
-#include <cuda.h>
-#include <cuda_runtime_api.h>
-#include <helper_cuda.h>
-#else
-#define NO_HIP_OR_CUDA 1
-#endif
 
 namespace benchmark {
 namespace {
@@ -157,7 +145,7 @@ ValueUnion GetSysctlImp(std::string const& Name) {
   int mib[2];
 
   mib[0] = CTL_HW;
-  if ((Name == "hw.ncpu") || (Name == "hw.cpuspeed")) {
+  if ((Name == "hw.ncpu") || (Name == "hw.cpuspeed")){
     ValueUnion buff(sizeof(int));
 
     if (Name == "hw.ncpu") {
@@ -377,27 +365,27 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizesWindows() {
 #elif BENCHMARK_OS_QNX
 std::vector<CPUInfo::CacheInfo> GetCacheSizesQNX() {
   std::vector<CPUInfo::CacheInfo> res;
-  struct cacheattr_entry* cache = SYSPAGE_ENTRY(cacheattr);
+  struct cacheattr_entry *cache = SYSPAGE_ENTRY(cacheattr);
   uint32_t const elsize = SYSPAGE_ELEMENT_SIZE(cacheattr);
-  int num = SYSPAGE_ENTRY_SIZE(cacheattr) / elsize;
-  for (int i = 0; i < num; ++i) {
+  int num = SYSPAGE_ENTRY_SIZE(cacheattr) / elsize ;
+  for(int i = 0; i < num; ++i ) {
     CPUInfo::CacheInfo info;
-    switch (cache->flags) {
-      case CACHE_FLAG_INSTR:
+    switch (cache->flags){
+      case CACHE_FLAG_INSTR :
         info.type = "Instruction";
         info.level = 1;
         break;
-      case CACHE_FLAG_DATA:
+      case CACHE_FLAG_DATA :
         info.type = "Data";
         info.level = 1;
         break;
-      case CACHE_FLAG_UNIFIED:
+      case CACHE_FLAG_UNIFIED :
         info.type = "Unified";
         info.level = 2;
-      case CACHE_FLAG_SHARED:
+      case CACHE_FLAG_SHARED :
         info.type = "Shared";
         info.level = 3;
-      default:
+      default :
         continue;
         break;
     }
@@ -425,22 +413,23 @@ std::vector<CPUInfo::CacheInfo> GetCacheSizes() {
 std::string GetSystemName() {
 #if defined(BENCHMARK_OS_WINDOWS)
   std::string str;
-  const unsigned COUNT = MAX_COMPUTERNAME_LENGTH + 1;
-  TCHAR hostname[COUNT] = {'\0'};
+  const unsigned COUNT = MAX_COMPUTERNAME_LENGTH+1;
+  TCHAR  hostname[COUNT] = {'\0'};
   DWORD DWCOUNT = COUNT;
-  if (!GetComputerName(hostname, &DWCOUNT)) return std::string("");
+  if (!GetComputerName(hostname, &DWCOUNT))
+    return std::string("");
 #ifndef UNICODE
   str = std::string(hostname, DWCOUNT);
 #else
-  // Using wstring_convert, Is deprecated in C++17
+  //Using wstring_convert, Is deprecated in C++17
   using convert_type = std::codecvt_utf8<wchar_t>;
   std::wstring_convert<convert_type, wchar_t> converter;
   std::wstring wStr(hostname, DWCOUNT);
   str = converter.to_bytes(wStr);
 #endif
   return str;
-#else                        // defined(BENCHMARK_OS_WINDOWS)
-#ifdef BENCHMARK_HAS_SYSCTL  // BSD/Mac Doesnt have HOST_NAME_MAX defined
+#else // defined(BENCHMARK_OS_WINDOWS)
+#ifdef BENCHMARK_HAS_SYSCTL // BSD/Mac Doesnt have HOST_NAME_MAX defined
 #define HOST_NAME_MAX 64
 #elif defined(BENCHMARK_OS_QNX)
 #define HOST_NAME_MAX 154
@@ -449,23 +438,7 @@ std::string GetSystemName() {
   int retVal = gethostname(hostname, HOST_NAME_MAX);
   if (retVal != 0) return std::string("");
   return std::string(hostname);
-#endif  // Catch-all POSIX block.
-}
-
-std::string GetGPUName() {
-#if defined(NO_HIP_OR_CUDA)
-  return "";
-#elif defined(HIP_RUNTIME_PRESENT)
-  hipDeviceProp_t props;
-  int result =
-      hipGetDeviceProperties(&props, 0 /*deviceId*/);  // For Single GPU Only
-  return std::string(props.name);
-#else //NVIDIA
-  cudaSetDevice(0); //for 0th device
-  cudaDeviceProp deviceProp;
-  cudaGetDeviceProperties(&deviceProp, 0);
-  return std::string(deviceProp.name);
-#endif
+#endif // Catch-all POSIX block.
 }
 
 int GetNumCPUs() {
@@ -487,7 +460,8 @@ int GetNumCPUs() {
   // Returns -1 in case of a failure.
   int NumCPU = sysconf(_SC_NPROCESSORS_ONLN);
   if (NumCPU < 0) {
-    fprintf(stderr, "sysconf(_SC_NPROCESSORS_ONLN) failed with error: %s\n",
+    fprintf(stderr,
+            "sysconf(_SC_NPROCESSORS_ONLN) failed with error: %s\n",
             strerror(errno));
   }
   return NumCPU;
@@ -510,8 +484,7 @@ int GetNumCPUs() {
 #if defined(__s390__)
     // s390 has another format in /proc/cpuinfo
     // it needs to be parsed differently
-    if (SplitIdx != std::string::npos)
-      value = ln.substr(Key.size() + 1, SplitIdx - Key.size() - 1);
+    if (SplitIdx != std::string::npos) value = ln.substr(Key.size()+1,SplitIdx-Key.size()-1);
 #else
     if (SplitIdx != std::string::npos) value = ln.substr(SplitIdx + 1);
 #endif
@@ -644,13 +617,13 @@ double GetCPUCyclesPerSecond() {
                       "~MHz", nullptr, &data, &data_size)))
     return static_cast<double>((int64_t)data *
                                (int64_t)(1000 * 1000));  // was mhz
-#elif defined(BENCHMARK_OS_SOLARIS)
-  kstat_ctl_t* kc = kstat_open();
+#elif defined (BENCHMARK_OS_SOLARIS)
+  kstat_ctl_t *kc = kstat_open();
   if (!kc) {
     std::cerr << "failed to open /dev/kstat\n";
     return -1;
   }
-  kstat_t* ksp = kstat_lookup(kc, (char*)"cpu_info", -1, (char*)"cpu_info0");
+  kstat_t *ksp = kstat_lookup(kc, (char*)"cpu_info", -1, (char*)"cpu_info0");
   if (!ksp) {
     std::cerr << "failed to lookup in /dev/kstat\n";
     return -1;
@@ -659,7 +632,7 @@ double GetCPUCyclesPerSecond() {
     std::cerr << "failed to read from /dev/kstat\n";
     return -1;
   }
-  kstat_named_t* knp =
+  kstat_named_t *knp =
       (kstat_named_t*)kstat_data_lookup(ksp, (char*)"current_clock_Hz");
   if (!knp) {
     std::cerr << "failed to lookup data in /dev/kstat\n";
@@ -673,7 +646,7 @@ double GetCPUCyclesPerSecond() {
   double clock_hz = knp->value.ui64;
   kstat_close(kc);
   return clock_hz;
-#elif defined(BENCHMARK_OS_QNX)
+#elif defined (BENCHMARK_OS_QNX)
   return static_cast<double>((int64_t)(SYSPAGE_ENTRY(cpuinfo)->speed) *
                              (int64_t)(1000 * 1000));
 #endif
@@ -686,9 +659,8 @@ double GetCPUCyclesPerSecond() {
 
 std::vector<double> GetLoadAvg() {
 #if (defined BENCHMARK_OS_FREEBSD || defined(BENCHMARK_OS_LINUX) || \
-     defined BENCHMARK_OS_MACOSX || defined BENCHMARK_OS_NETBSD ||  \
-     defined BENCHMARK_OS_OPENBSD) &&                               \
-    !defined(__ANDROID__)
+    defined BENCHMARK_OS_MACOSX || defined BENCHMARK_OS_NETBSD ||  \
+    defined BENCHMARK_OS_OPENBSD) && !defined(__ANDROID__)
   constexpr int kMaxSamples = 3;
   std::vector<double> res(kMaxSamples, 0.0);
   const int nelem = getloadavg(res.data(), kMaxSamples);
@@ -702,6 +674,7 @@ std::vector<double> GetLoadAvg() {
   return {};
 #endif
 }
+
 }  // end namespace
 
 const CPUInfo& CPUInfo::Get() {
@@ -716,17 +689,11 @@ CPUInfo::CPUInfo()
       scaling_enabled(CpuScalingEnabled(num_cpus)),
       load_avg(GetLoadAvg()) {}
 
+
 const SystemInfo& SystemInfo::Get() {
   static const SystemInfo* info = new SystemInfo();
   return *info;
 }
 
 SystemInfo::SystemInfo() : name(GetSystemName()) {}
-
-const GPUInfo& GPUInfo::Get() {
-  static const GPUInfo* info = new GPUInfo();
-  return info;
-}
-
-GPUInfo::GPUInfo() : name(GetGPUName()) {}
 }  // end namespace benchmark
