@@ -6,8 +6,11 @@
 [![slackin](https://slackin-iqtfqnpzxd.now.sh/badge.svg)](https://slackin-iqtfqnpzxd.now.sh/)
 
 This is a fork from google/benchmark modified for CUDA.
+
 Configure: `cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/install -DBENCHMARK_ENABLE_GTEST_TESTS=OFF -DCMAKE_CXX_COMPILER=nvcc -DCMAKE_CXX_FLAGS="-DENABLEGPU=1" -DBENCHMARK_ENABLE_TESTING=Off`
+
 Build Test: `nvcc fileName.cu -std=c++11 -isystem install/include -L./install/lib -lbenchmark -lpthread -o bench -L /usr/local/cuda/lib64/ -lcudart`
+
 To Get a Sense of what file might look like, checkout GPUTest folder.
 
 CUDA Status:
