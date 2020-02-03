@@ -62,18 +62,19 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
     Out << "\n";
   }
 
+#ifdef ENABLEGPU
+  const GPUInfo &ginfo = context.gpu_info;
+  Out << "Kernels Run on: " << ginfo.name << " with " << ginfo.cuCount
+      << " Compute Units\n"
+      << "With Memory: " << ginfo.globalMemory << " MB\n"
+      << "Clocked at: " << ginfo.clockRate << " MHz\n";
+#endif
+
   if (info.scaling_enabled) {
     Out << "***WARNING*** CPU scaling is enabled, the benchmark "
            "real time measurements may be noisy and will incur extra "
            "overhead.\n";
   }
-
-#ifdef ENABLEGPU
-  const GPUInfo &ginfo = context.gpu_info;
-  Out << "Kernels Running on: " << ginfo.name
-      << " With Memory: " << ginfo.globalMemory
-      << " Clocked at: " << ginfo.clockRate << " MHz\n";
-#endif
 
 #ifndef NDEBUG
   Out << "***WARNING*** Library was built as DEBUG. Timings may be "
@@ -85,7 +86,14 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 const char *BenchmarkReporter::Context::executable_name;
 
 BenchmarkReporter::Context::Context()
-    : cpu_info(CPUInfo::Get()), sys_info(SystemInfo::Get()) {}
+    : cpu_info(CPUInfo::Get()),
+      sys_info(SystemInfo::Get())
+#ifdef ENABLEGPU
+      ,
+      gpu_info(GPUInfo::Get())
+#endif
+{
+}
 
 std::string BenchmarkReporter::Run::benchmark_name() const {
   std::string name = run_name.str();

@@ -254,6 +254,22 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #ifdef ENABLEGPU
 #include <cuda.h>
 #include <cuda_runtime.h>
+
+#define BENCHMARK_GPU_DECLARE() \
+  cudaEvent_t start, stop;      \
+  float time;
+#define BENCHMARK_GPU_PRE_KERNEL() \
+  cudaEventCreate(&start);         \
+  cudaEventCreate(&stop);          \
+  cudaEventRecord(start, 0);
+#define BENCHMARK_GPU_POST_KERNEL() \
+  cudaEventRecord(stop, 0);         \
+  cudaEventSynchronize(stop);       \
+  cudaEventElapsedTime(&time, start, stop);
+#define BENCHMARK_GPU_SET_TIME() state.SetIterationTime(time / 1000.0f);
+#define BENCHMARK_GPU_CLEANUP() \
+  cudaEventDestroy(start);      \
+  cudaEventDestroy(stop);
 #endif
 
 namespace benchmark {
@@ -394,7 +410,7 @@ class Counter {
   Counter(double v = 0., Flags f = kDefaults, OneK k = kIs1000)
       : value(v), flags(f), oneK(k) {}
 
-  BENCHMARK_ALWAYS_INLINE operator double const&() const { return value; }
+  BENCHMARK_ALWAYS_INLINE operator double const &() const { return value; }
   BENCHMARK_ALWAYS_INLINE operator double&() { return value; }
 };
 
@@ -1314,7 +1330,9 @@ struct GPUInfo {
   int devCount;
   std::string name;
   size_t globalMemory;
+  int cuCount;
   int clockRate;
+  static const GPUInfo& Get();
 
  private:
   GPUInfo();
