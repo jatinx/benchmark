@@ -368,7 +368,10 @@ class Counter {
     // It will be presented divided by the number of iterations.
     kAvgIterations = 1U << 3U,
     // Mark the counter as a iteration-average rate. See above.
-    kAvgIterationsRate = kIsRate | kAvgIterations
+    kAvgIterationsRate = kIsRate | kAvgIterations,
+
+    // In the end, invert the result. This is always done last!
+    kInvert = 1U << 31U
   };
 
   enum OneK {
@@ -574,7 +577,7 @@ class State {
   void SetComplexityN(int64_t complexity_n) { complexity_n_ = complexity_n; }
 
   BENCHMARK_ALWAYS_INLINE
-  int64_t complexity_length_n() { return complexity_n_; }
+  int64_t complexity_length_n() const { return complexity_n_; }
 
   // If this routine is called with items > 0, then an items/s
   // label is printed on the benchmark report line for the currently
