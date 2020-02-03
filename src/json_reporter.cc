@@ -12,9 +12,6 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/benchmark.h"
-#include "complexity.h"
-
 #include <algorithm>
 #include <cmath>
 #include <cstdint>
@@ -25,6 +22,8 @@
 #include <tuple>
 #include <vector>
 
+#include "benchmark/benchmark.h"
+#include "complexity.h"
 #include "string_util.h"
 #include "timers.h"
 
@@ -32,34 +31,53 @@ namespace benchmark {
 
 namespace {
 
-std::string StrEscape(const std::string & s) {
+std::string StrEscape(const std::string& s) {
   std::string tmp;
   tmp.reserve(s.size());
   for (char c : s) {
     switch (c) {
-    case '\b': tmp += "\\b"; break;
-    case '\f': tmp += "\\f"; break;
-    case '\n': tmp += "\\n"; break;
-    case '\r': tmp += "\\r"; break;
-    case '\t': tmp += "\\t"; break;
-    case '\\': tmp += "\\\\"; break;
-    case '"' : tmp += "\\\""; break;
-    default  : tmp += c; break;
+      case '\b':
+        tmp += "\\b";
+        break;
+      case '\f':
+        tmp += "\\f";
+        break;
+      case '\n':
+        tmp += "\\n";
+        break;
+      case '\r':
+        tmp += "\\r";
+        break;
+      case '\t':
+        tmp += "\\t";
+        break;
+      case '\\':
+        tmp += "\\\\";
+        break;
+      case '"':
+        tmp += "\\\"";
+        break;
+      default:
+        tmp += c;
+        break;
     }
   }
   return tmp;
 }
 
 std::string FormatKV(std::string const& key, std::string const& value) {
-  return StrFormat("\"%s\": \"%s\"", StrEscape(key).c_str(), StrEscape(value).c_str());
+  return StrFormat("\"%s\": \"%s\"", StrEscape(key).c_str(),
+                   StrEscape(value).c_str());
 }
 
 std::string FormatKV(std::string const& key, const char* value) {
-  return StrFormat("\"%s\": \"%s\"", StrEscape(key).c_str(), StrEscape(value).c_str());
+  return StrFormat("\"%s\": \"%s\"", StrEscape(key).c_str(),
+                   StrEscape(value).c_str());
 }
 
 std::string FormatKV(std::string const& key, bool value) {
-  return StrFormat("\"%s\": %s", StrEscape(key).c_str(), value ? "true" : "false");
+  return StrFormat("\"%s\": %s", StrEscape(key).c_str(),
+                   value ? "true" : "false");
 }
 
 std::string FormatKV(std::string const& key, int64_t value) {
@@ -134,8 +152,8 @@ bool JSONReporter::ReportContext(const Context& context) {
     out << cache_indent << FormatKV("type", CI.type) << ",\n";
     out << cache_indent << FormatKV("level", static_cast<int64_t>(CI.level))
         << ",\n";
-    out << cache_indent
-        << FormatKV("size", static_cast<int64_t>(CI.size)) << ",\n";
+    out << cache_indent << FormatKV("size", static_cast<int64_t>(CI.size))
+        << ",\n";
     out << cache_indent
         << FormatKV("num_sharing", static_cast<int64_t>(CI.num_sharing))
         << "\n";
@@ -151,6 +169,18 @@ bool JSONReporter::ReportContext(const Context& context) {
     if (it != info.load_avg.end()) out << ",";
   }
   out << "],\n";
+
+#ifdef ENABLEGPU
+  const GPUInfo& ginfo = context.gpu_info;
+  out << indent << FormatKV("gpu_name", ginfo.name) << ",\n"
+      << indent
+      << FormatKV("compute_units", static_cast<int64_t>(ginfo.cuCount)) << ",\n"
+      << indent
+      << FormatKV("gpu_memory", static_cast<int64_t>(ginfo.globalMemory))
+      << ",\n"
+      << indent << FormatKV("gpu_clock", static_cast<int64_t>(ginfo.clockRate))
+      << ",\n";
+#endif
 
 #if defined(NDEBUG)
   const char build_type[] = "release";

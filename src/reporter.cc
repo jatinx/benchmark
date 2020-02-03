@@ -12,17 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/benchmark.h"
-#include "timers.h"
-
 #include <cstdlib>
-
 #include <iostream>
 #include <tuple>
 #include <vector>
 
+#include "benchmark/benchmark.h"
 #include "check.h"
 #include "string_util.h"
+#include "timers.h"
 
 namespace benchmark {
 
@@ -64,6 +62,14 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
     Out << "\n";
   }
 
+#ifdef ENABLEGPU
+  const GPUInfo &ginfo = context.gpu_info;
+  Out << "Kernels Run on: " << ginfo.name << " with " << ginfo.cuCount
+      << " Compute Units\n"
+      << "With Memory: " << ginfo.globalMemory << " MB\n"
+      << "Clocked at: " << ginfo.clockRate << " MHz\n";
+#endif
+
   if (info.scaling_enabled) {
     Out << "***WARNING*** CPU scaling is enabled, the benchmark "
            "real time measurements may be noisy and will incur extra "
@@ -80,7 +86,14 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
 const char *BenchmarkReporter::Context::executable_name;
 
 BenchmarkReporter::Context::Context()
-    : cpu_info(CPUInfo::Get()), sys_info(SystemInfo::Get()) {}
+    : cpu_info(CPUInfo::Get()),
+      sys_info(SystemInfo::Get())
+#ifdef ENABLEGPU
+      ,
+      gpu_info(GPUInfo::Get())
+#endif
+{
+}
 
 std::string BenchmarkReporter::Run::benchmark_name() const {
   std::string name = run_name.str();

@@ -251,6 +251,36 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_UNREACHABLE() ((void)0)
 #endif
 
+#ifdef ENABLEGPU
+#include <cuda.h>
+#include <cuda_runtime.h>
+
+#define BENCHMARK_GPU_DECLARE() \
+  cudaEvent_t start, stop;      \
+  float time;
+#define BENCHMARK_GPU_PRE_KERNEL() \
+  cudaEventCreate(&start);         \
+  cudaEventCreate(&stop);          \
+  cudaEventRecord(start, 0);
+#define BENCHMARK_GPU_POST_KERNEL() \
+  cudaEventRecord(stop, 0);         \
+  cudaEventSynchronize(stop);       \
+  cudaEventElapsedTime(&time, start, stop);
+#define BENCHMARK_GPU_SET_TIME() state.SetIterationTime(time / 1000.0f);
+#define BENCHMARK_GPU_CLEANUP() \
+  cudaEventDestroy(start);      \
+  cudaEventDestroy(stop);
+
+// Compact Definitions
+#define BENCHMARK_GPU_COMPACT_HEAD() \
+  BENCHMARK_GPU_DECLARE();           \
+  BENCHMARK_GPU_PRE_KERNEL();
+#define BENCHMARK_GPU_COMPACT_TAIL() \
+  BENCHMARK_GPU_POST_KERNEL();       \
+  BENCHMARK_GPU_SET_TIME();          \
+  BENCHMARK_GPU_CLEANUP();
+#endif
+
 namespace benchmark {
 class BenchmarkReporter;
 class MemoryManager;
@@ -1307,6 +1337,20 @@ struct CPUInfo {
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(CPUInfo);
 };
 
+#ifdef ENABLEGPU
+struct GPUInfo {
+  int devCount;
+  std::string name;
+  size_t globalMemory;
+  int cuCount;
+  int clockRate;
+  static const GPUInfo& Get();
+
+ private:
+  GPUInfo();
+  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(GPUInfo);
+};
+#endif
 // Adding Struct for System Information
 struct SystemInfo {
   std::string name;
@@ -1344,6 +1388,9 @@ class BenchmarkReporter {
   struct Context {
     CPUInfo const& cpu_info;
     SystemInfo const& sys_info;
+#ifdef ENABLEGPU
+    GPUInfo const& gpu_info;
+#endif
     // The number of chars in the longest benchmark name.
     size_t name_field_width;
     static const char* executable_name;
