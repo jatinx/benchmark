@@ -1,0 +1,4 @@
+#Configure
+cmake .. -DCMAKE_INSTALL_PREFIX=$PWD/install -DBENCHMARK_ENABLE_GTEST_TESTS=OFF -DCMAKE_CXX_COMPILER=nvcc -DCMAKE_CXX_FLAGS="-DENABLEGPU=1" -DCMAKE_VERBOSE_MAKEFILE=True
+#Build Test
+nvcc test.cu -std=c++11 -isystem install/include -L./install/lib -lbenchmark -lpthread -o bench -L /usr/local/cuda/lib64/ -lcudart
