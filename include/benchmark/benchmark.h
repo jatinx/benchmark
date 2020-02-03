@@ -251,6 +251,11 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #define BENCHMARK_UNREACHABLE() ((void)0)
 #endif
 
+#ifdef ENABLEGPU
+#include <cuda.h>
+#include <cuda_runtime.h>
+#endif
+
 namespace benchmark {
 class BenchmarkReporter;
 class MemoryManager;
@@ -1304,6 +1309,18 @@ struct CPUInfo {
   BENCHMARK_DISALLOW_COPY_AND_ASSIGN(CPUInfo);
 };
 
+#ifdef ENABLEGPU
+struct GPUInfo {
+  int devCount;
+  std::string name;
+  size_t globalMemory;
+  int clockRate;
+
+ private:
+  GPUInfo();
+  BENCHMARK_DISALLOW_COPY_AND_ASSIGN(GPUInfo);
+};
+#endif
 // Adding Struct for System Information
 struct SystemInfo {
   std::string name;
@@ -1341,6 +1358,9 @@ class BenchmarkReporter {
   struct Context {
     CPUInfo const& cpu_info;
     SystemInfo const& sys_info;
+#ifdef ENABLEGPU
+    GPUInfo const& gpu_info;
+#endif
     // The number of chars in the longest benchmark name.
     size_t name_field_width;
     static const char* executable_name;

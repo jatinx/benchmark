@@ -698,6 +698,18 @@ CPUInfo::CPUInfo()
       scaling_enabled(CpuScalingEnabled(num_cpus)),
       load_avg(GetLoadAvg()) {}
 
+#ifdef ENABLEGPU
+GPUInfo::GPUInfo() {
+  int dc;
+  cudaGetDeviceCount(&dc);
+  cudaDeviceProp devProp;
+  cudaGetDeviceProperties(&devProp, 0);
+  devCount = dc;
+  name = std::string(devProp.name);
+  globalMemory = devProp.totalGlobalMem;
+  clockRate = devProp.clockRate;
+}
+#endif
 
 const SystemInfo& SystemInfo::Get() {
   static const SystemInfo* info = new SystemInfo();

@@ -12,17 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-#include "benchmark/benchmark.h"
-#include "timers.h"
-
 #include <cstdlib>
-
 #include <iostream>
 #include <tuple>
 #include <vector>
 
+#include "benchmark/benchmark.h"
 #include "check.h"
 #include "string_util.h"
+#include "timers.h"
 
 namespace benchmark {
 
@@ -69,6 +67,13 @@ void BenchmarkReporter::PrintBasicContext(std::ostream *out,
            "real time measurements may be noisy and will incur extra "
            "overhead.\n";
   }
+
+#ifdef ENABLEGPU
+  const GPUInfo &ginfo = context.gpu_info;
+  Out << "Kernels Running on: " << ginfo.name
+      << " With Memory: " << ginfo.globalMemory
+      << " Clocked at: " << ginfo.clockRate << " MHz\n";
+#endif
 
 #ifndef NDEBUG
   Out << "***WARNING*** Library was built as DEBUG. Timings may be "
