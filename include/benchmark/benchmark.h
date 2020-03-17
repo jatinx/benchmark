@@ -255,30 +255,45 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <cuda.h>
 #include <cuda_runtime.h>
 
-#define BENCHMARK_GPU_DECLARE() \
-  cudaEvent_t start, stop;      \
+#define BENCHMARK_GPU_INIT() \
+  cudaEvent_t start, stop;   \
   float time;
-#define BENCHMARK_GPU_PRE_KERNEL() \
-  cudaEventCreate(&start);         \
-  cudaEventCreate(&stop);          \
+
+// Without Streams
+#define BENCHMARK_GPU_START() \
+  cudaEventCreate(&start);    \
+  cudaEventCreate(&stop);     \
   cudaEventRecord(start, 0);
-#define BENCHMARK_GPU_POST_KERNEL() \
-  cudaEventRecord(stop, 0);         \
-  cudaEventSynchronize(stop);       \
-  cudaEventElapsedTime(&time, start, stop);
-#define BENCHMARK_GPU_SET_TIME() state.SetIterationTime(time / 1000.0f);
-#define BENCHMARK_GPU_CLEANUP() \
-  cudaEventDestroy(start);      \
+#define BENCHMARK_GPU_STOP()                \
+  cudaEventRecord(stop, 0);                 \
+  cudaEventSynchronize(stop);               \
+  cudaEventElapsedTime(&time, start, stop); \
+  state.SetIterationTime(time / 1000.0f);   \
+  cudaEventDestroy(start);                  \
+  cudaEventDestroy(stop);
+
+// With streams
+#define BENCHMARK_GPU_START_STREAM(streamid) \
+  cudaEventCreate(&start);                   \
+  cudaEventCreate(&stop);                    \
+  cudaEventRecord(start, streamid);
+#define BENCHMARK_GPU_STOP_STREAM()         \
+  cudaEventRecord(stop, streamid);          \
+  cudaEventSynchronize(stop);               \
+  cudaEventElapsedTime(&time, start, stop); \
+  state.SetIterationTime(time / 1000.0f);   \
+  cudaEventDestroy(start);                  \
   cudaEventDestroy(stop);
 
 // Compact Definitions
 #define BENCHMARK_GPU_COMPACT_HEAD() \
-  BENCHMARK_GPU_DECLARE();           \
-  BENCHMARK_GPU_PRE_KERNEL();
+  BENCHMARK_GPU_INIT();              \
+  BENCHMARK_GPU_START();
 #define BENCHMARK_GPU_COMPACT_TAIL() \
-  BENCHMARK_GPU_POST_KERNEL();       \
-  BENCHMARK_GPU_SET_TIME();          \
-  BENCHMARK_GPU_CLEANUP();
+  BENCHMARK_GPU_STOP();              \
+  BENCHMARK_GPU_DONE();
+
+#define GPUBENCHMARK(b) BENCHMARK(b)->UseManualTime();
 #endif
 
 namespace benchmark {

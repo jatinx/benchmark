@@ -5,33 +5,29 @@ __global__ void add(int* a) { *a += 3; }
 
 static void BM_CudaMalloc(benchmark::State& state) {
   for (auto _ : state) {
-    BENCHMARK_GPU_DECLARE();
-    BENCHMARK_GPU_PRE_KERNEL();
+    BENCHMARK_GPU_INIT();
+    BENCHMARK_GPU_START();
     int *d_a;
     cudaMalloc(&d_a, sizeof(int));
     cudaFree(d_a);
-    BENCHMARK_GPU_POST_KERNEL();
-    BENCHMARK_GPU_SET_TIME();
-    BENCHMARK_GPU_CLEANUP();
+    BENCHMARK_GPU_STOP();
   }
 }
 // Register the function as a benchmark
-BENCHMARK(BM_CudaMalloc)->UseManualTime();
+GPUBENCHMARK(BM_CudaMalloc);
 
 // Define another benchmark
 static void BM_LaunchKernel(benchmark::State& state) {
   for (auto _ : state) {
-    BENCHMARK_GPU_DECLARE();
-    BENCHMARK_GPU_PRE_KERNEL();
+    BENCHMARK_GPU_INIT();
+    BENCHMARK_GPU_START();
     int *d_a;
     cudaMalloc(&d_a, sizeof(int));
     add<<<1,1>>>(d_a);
     cudaFree(d_a);
-    BENCHMARK_GPU_POST_KERNEL();
-    BENCHMARK_GPU_SET_TIME();
-    BENCHMARK_GPU_CLEANUP();
+    BENCHMARK_GPU_STOP();
   }
 }
-BENCHMARK(BM_LaunchKernel)->UseManualTime();
+GPUBENCHMARK(BM_LaunchKernel);
 
 BENCHMARK_MAIN();
