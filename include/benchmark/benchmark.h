@@ -252,38 +252,37 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #endif
 
 #ifdef ENABLEGPU
-#include <cuda.h>
-#include <cuda_runtime.h>
+#include <hip/hip_runtime.h>
 
 #define BENCHMARK_GPU_INIT() \
-  cudaEvent_t start, stop;   \
+  hipEvent_t start, stop;   \
   float time;
 
 // Without Streams
 #define BENCHMARK_GPU_START() \
-  cudaEventCreate(&start);    \
-  cudaEventCreate(&stop);     \
-  cudaEventRecord(start, 0);
+  hipEventCreate(&start);    \
+  hipEventCreate(&stop);     \
+  hipEventRecord(start, 0);
 #define BENCHMARK_GPU_STOP()                \
-  cudaEventRecord(stop, 0);                 \
-  cudaEventSynchronize(stop);               \
-  cudaEventElapsedTime(&time, start, stop); \
+  hipEventRecord(stop, 0);                 \
+  hipEventSynchronize(stop);               \
+  hipEventElapsedTime(&time, start, stop); \
   state.SetIterationTime(time / 1000.0f);   \
-  cudaEventDestroy(start);                  \
-  cudaEventDestroy(stop);
+  hipEventDestroy(start);                  \
+  hipEventDestroy(stop);
 
 // With streams
 #define BENCHMARK_GPU_START_STREAM(streamid) \
-  cudaEventCreate(&start);                   \
-  cudaEventCreate(&stop);                    \
-  cudaEventRecord(start, streamid);
+  hipEventCreate(&start);                   \
+  hipEventCreate(&stop);                    \
+  hipEventRecord(start, streamid);
 #define BENCHMARK_GPU_STOP_STREAM()         \
-  cudaEventRecord(stop, streamid);          \
-  cudaEventSynchronize(stop);               \
-  cudaEventElapsedTime(&time, start, stop); \
+  hipEventRecord(stop, streamid);          \
+  hipEventSynchronize(stop);               \
+  hipEventElapsedTime(&time, start, stop); \
   state.SetIterationTime(time / 1000.0f);   \
-  cudaEventDestroy(start);                  \
-  cudaEventDestroy(stop);
+  hipEventDestroy(start);                  \
+  hipEventDestroy(stop);
 
 // Compact Definitions
 #define BENCHMARK_GPU_COMPACT_HEAD() \

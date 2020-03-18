@@ -702,9 +702,9 @@ CPUInfo::CPUInfo()
 #ifdef ENABLEGPU
 GPUInfo::GPUInfo() {
   int dc;
-  cudaGetDeviceCount(&dc);
-  cudaDeviceProp devProp;
-  cudaGetDeviceProperties(&devProp, 0);
+  hipGetDeviceCount(&dc);
+  hipDeviceProp devProp;
+  hipGetDeviceProperties(&devProp, 0);
   devCount = dc;
   name = std::string(devProp.name);
   globalMemory = devProp.totalGlobalMem / (1024 * 1024.0f);
