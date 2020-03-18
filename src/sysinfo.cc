@@ -703,7 +703,7 @@ CPUInfo::CPUInfo()
 GPUInfo::GPUInfo() {
   int dc;
   hipGetDeviceCount(&dc);
-  hipDeviceProp devProp;
+  hipDeviceProp_t devProp;
   hipGetDeviceProperties(&devProp, 0);
   devCount = dc;
   name = std::string(devProp.name);
