@@ -5,7 +5,6 @@
 
 #include "launchKernel.h"
 #include "malloc.h"
-#include "rtc.h"
 #include "vectorTypes.h"
 
 BENCHMARK_MAIN();
