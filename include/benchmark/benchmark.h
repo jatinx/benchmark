@@ -255,33 +255,33 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
 #include <hip/hip_runtime.h>
 
 #define BENCHMARK_GPU_INIT() \
-  hipEvent_t start, stop;   \
+  hipEvent_t start, stop;    \
   float time;
 
 // Without Streams
 #define BENCHMARK_GPU_START() \
-  hipEventCreate(&start);    \
-  hipEventCreate(&stop);     \
+  hipEventCreate(&start);     \
+  hipEventCreate(&stop);      \
   hipEventRecord(start, 0);
-#define BENCHMARK_GPU_STOP()                \
+#define BENCHMARK_GPU_STOP()               \
   hipEventRecord(stop, 0);                 \
   hipEventSynchronize(stop);               \
   hipEventElapsedTime(&time, start, stop); \
-  state.SetIterationTime(time / 1000.0f);   \
+  state.SetIterationTime(time / 1000.0f);  \
   hipEventDestroy(start);                  \
   hipEventDestroy(stop);
 
 // With streams
 #define BENCHMARK_GPU_START_STREAM(streamid) \
-  hipEventCreate(&start);                   \
-  hipEventCreate(&stop);                    \
+  hipEventCreate(&start);                    \
+  hipEventCreate(&stop);                     \
   hipEventRecord(start, streamid);
-#define BENCHMARK_GPU_STOP_STREAM()         \
-  hipEventRecord(stop, streamid);          \
-  hipEventSynchronize(stop);               \
-  hipEventElapsedTime(&time, start, stop); \
+#define BENCHMARK_GPU_STOP_STREAM(streamid) \
+  hipEventRecord(stop, streamid);           \
+  hipEventSynchronize(stop);                \
+  hipEventElapsedTime(&time, start, stop);  \
   state.SetIterationTime(time / 1000.0f);   \
-  hipEventDestroy(start);                  \
+  hipEventDestroy(start);                   \
   hipEventDestroy(stop);
 
 // Compact Definitions
