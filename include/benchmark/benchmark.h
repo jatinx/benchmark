@@ -271,6 +271,22 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
   hipEventDestroy(start);                  \
   hipEventDestroy(stop);
 
+// Without Streams - declare once
+#define BENCHMARK_GPU_DECLARE() \
+  hipEvent_t start, stop;       \
+  float time = 0;               \
+  hipEventCreate(&start);       \
+  hipEventCreate(&stop);
+#define BENCHMARK_GPU_BEGIN() hipEventRecord(start, 0);
+#define BENCHMARK_GPU_END()                \
+  hipEventRecord(stop, 0);                 \
+  hipEventSynchronize(stop);               \
+  hipEventElapsedTime(&time, start, stop); \
+  state.SetIterationTime(time / 1000.0f);
+#define BENCHMARK_GPU_CLEANUP() \
+  hipEventDestroy(start);       \
+  hipEventDestroy(stop);
+
 // With streams
 #define BENCHMARK_GPU_START_STREAM(streamid) \
   hipEventCreate(&start);                    \
@@ -292,7 +308,8 @@ BENCHMARK(BM_test)->Unit(benchmark::kMillisecond);
   BENCHMARK_GPU_STOP();              \
   BENCHMARK_GPU_DONE();
 
-#define GPUBENCHMARK(b) BENCHMARK(b)->UseManualTime();
+#define GPUBENCHMARK(b) BENCHMARK(b)->UseManualTime()
+
 #endif
 
 namespace benchmark {

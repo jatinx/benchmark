@@ -12,6 +12,19 @@ static void BM_hip_malloc(benchmark::State& state) {
 }
 GPUBENCHMARK(BM_hip_malloc);
 
+static void BM_hip_malloc_B(benchmark::State &state) {
+  BENCHMARK_GPU_DECLARE()
+  for (auto _ : state) {
+    BENCHMARK_GPU_BEGIN();
+    int *d_a;
+    hipMalloc(&d_a, sizeof(int));
+    BENCHMARK_GPU_END();
+    hipFree(d_a);
+  }
+  BENCHMARK_GPU_CLEANUP();
+}
+GPUBENCHMARK(BM_hip_malloc_B);
+
 static void BM_hip_memcpy_h2d(benchmark::State& state) {
   for (auto _ : state) {
     BENCHMARK_GPU_INIT();
