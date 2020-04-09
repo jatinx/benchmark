@@ -286,6 +286,87 @@ def generate_difference_report(
     return output_strs
 
 
+def generate_difference_report_hip(
+        json1,
+        json2,
+        display_aggregates_only=False,
+        utest=False,
+        utest_alpha=0.05,
+        use_color=True):
+    """
+    This function is specially for hip, since we need some filters in place
+    Calculate and report the difference between each test of two benchmarks
+    runs specified as 'json1' and 'json2'.
+    """
+    assert utest is True or utest is False
+    first_col_width = find_longest_name(json1['benchmarks'])
+
+    def find_test(name):
+        for b in json2['benchmarks']:
+            if b['name'] == name:
+                return b
+        return None
+
+    first_col_width = max(
+        first_col_width,
+        len('Benchmark'))
+    first_col_width += len(UTEST_COL_NAME)
+    first_line = "{:<{}s}Time             CPU      Time Old      Time New       CPU Old       CPU New".format(
+        'Benchmark', 12 + first_col_width)
+    output_strs = [first_line, '-' * len(first_line)]
+
+    partitions = partition_benchmarks(json1, json2)
+    for partition in partitions:
+        # Careful, we may have different repetition count.
+        for i in range(min(len(partition[0]), len(partition[1]))):
+            bn = partition[0][i]
+            other_bench = partition[1][i]
+
+            # *If* we were asked to only display aggregates,
+            # and if it is non-aggregate, then skip it.
+            if display_aggregates_only and 'run_type' in bn and 'run_type' in other_bench:
+                assert bn['run_type'] == other_bench['run_type']
+                if bn['run_type'] != 'aggregate':
+                    continue
+
+            fmt_str = "{}{:<{}s}{endc}{}{:+16.4f}{endc}{}{:+16.4f}{endc}{:14.0f}{:14.0f}{endc}{:14.0f}{:14.0f}"
+
+            def get_color(res):
+                if res > 0.05:
+                    return BC_FAIL
+                elif res > -0.07:
+                    return BC_WHITE
+                else:
+                    return BC_CYAN
+
+            tres = calculate_change(bn['real_time'], other_bench['real_time'])
+            if(tres > -0.7 and tres < 0.7):
+                continue;
+            cpures = calculate_change(bn['cpu_time'], other_bench['cpu_time'])
+            output_strs += [color_format(use_color,
+                                         fmt_str,
+                                         BC_HEADER,
+                                         bn['name'],
+                                         first_col_width,
+                                         get_color(tres),
+                                         tres,
+                                         get_color(cpures),
+                                         cpures,
+                                         bn['real_time'],
+                                         other_bench['real_time'],
+                                         bn['cpu_time'],
+                                         other_bench['cpu_time'],
+                                         endc=BC_ENDC)]
+
+        # After processing the whole partition, if requested, do the U test.
+        if utest:
+            output_strs += print_utest(partition,
+                                       utest_alpha=utest_alpha,
+                                       first_col_width=first_col_width,
+                                       use_color=use_color)
+
+    return output_strs
+
 ###############################################################################
 # Unit tests
 
