@@ -340,7 +340,7 @@ def generate_difference_report_hip(
                     return BC_CYAN
 
             tres = calculate_change(bn['real_time'], other_bench['real_time'])
-            if(tres > -0.7 and tres < 0.7):
+            if(tres > -0.07 and tres < 0.07):
                 continue;
             cpures = calculate_change(bn['cpu_time'], other_bench['cpu_time'])
             output_strs += [color_format(use_color,
